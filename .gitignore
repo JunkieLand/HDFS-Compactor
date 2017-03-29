@@ -1,0 +1,9 @@
+# Intellij IDEA
+.idea
+*.iml
+
+# Sbt
+target
+
+# App
+data
