@@ -32,7 +32,7 @@ trait CompactionConfigurationTrait {
       outputFileFormat.get
     )
 
-    val compactionConfiguration = CompactionConfiguration(
+    CompactionConfiguration(
       inputFiles = inputFiles,
       inputFileFormat = inputFileFormat.get,
       outputDirectory = getOutputDirectory(bootParams.inputDirectory, bootParams.outputDirectory),
@@ -48,7 +48,7 @@ trait CompactionConfigurationTrait {
       .listStatus(new Path(inputDirectory), new PathFilter {
         def accept(path: Path) = !path.getName.contains("_SUCCESS")
       })
-      .map(_.getPath.getName)
+      .map(_.getPath.toString)
       .toVector
   }
 
@@ -58,7 +58,7 @@ trait CompactionConfigurationTrait {
         logger.info("User did not provide any input file format. Will try to guess one according to the file names.")
 
         if (inputFiles.forall(_.endsWith("parquet"))) {
-          logger.info("Found file format of input files to be {}", FileFormat.Parquet)
+          logger.info("Found file format of input files to be : {}", FileFormat.Parquet)
           Some(FileFormat.Parquet)
         } else {
           logger.error("Unable to determine file format of input files")
@@ -69,7 +69,7 @@ trait CompactionConfigurationTrait {
 
   def getInputCompressionFormat(inputFiles: Seq[String]): Option[CompressionFormat] = {
     if (inputFiles.forall(_.contains("snappy"))) {
-      logger.info("Found compression format of input files to be {}", CompressionFormat.Snappy)
+      logger.info("Found compression format of input files to be : {}", CompressionFormat.Snappy)
       Some(CompressionFormat.Snappy)
     } else {
       logger.warn("Unable to determine compression format of input files. Will fallback on the user provided one.")

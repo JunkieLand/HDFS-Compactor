@@ -17,11 +17,10 @@ class CompactionConfiguration$Test extends FunSuite with Matchers with BeforeAnd
     val inputFiles = CompactionConfiguration.getInputFiles(inputDirectory)
 
     // -- Then
-    inputFiles should contain theSameElementsAs Vector(
-      "part-00000-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet",
-      "part-00001-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet",
-      "part-00002-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet"
-    )
+    inputFiles.size should be(3)
+    inputFiles.find(_.endsWith("part-00000-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet")).get should startWith("file:")
+    inputFiles.find(_.endsWith("part-00001-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet")).get should startWith("file:")
+    inputFiles.find(_.endsWith("part-00002-fc6d5dd6-0f84-4db7-b9cb-98f72c2e9cbf.snappy.parquet")).get should startWith("file:")
   }
 
   test("Should find parquet file format in input files") {

@@ -22,6 +22,7 @@ object Dependencies {
   val commonLibraries = Seq(
     "org.joda" % "joda-convert" % "1.8.1",
     "joda-time" % "joda-time" % "2.9.6",
+    "ch.qos.logback" % "logback-classic" % "1.2.2",
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % "test"
   ).map(_.exclude("org.mortbay.jetty", "servlet-api"))
