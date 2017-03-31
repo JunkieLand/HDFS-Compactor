@@ -9,14 +9,15 @@ case class CompactionConfiguration(
   inputFileFormat:         FileFormat,
   outputDirectory:         String,
   outputFileFormat:        FileFormat,
-  outputCompressionFormat: CompressionFormat
+  outputCompressionFormat: CompressionFormat,
+  deleteInputFiles:        Boolean
 )
 
 trait CompactionConfigurationTrait {
 
   lazy val logger = LoggerFactory.getLogger(getClass())
 
-  def compute(bootParams: BootParams)(implicit fs: FileSystem) = {
+  def compute(bootParams: BootParams)(implicit fs: FileSystem): CompactionConfiguration = {
     val inputFiles = getInputFiles(bootParams.inputDirectory)
     require(inputFiles.nonEmpty, "You should provide input files or an input directory in argument")
 
@@ -37,7 +38,8 @@ trait CompactionConfigurationTrait {
       inputFileFormat = inputFileFormat.get,
       outputDirectory = getOutputDirectory(bootParams.inputDirectory, bootParams.outputDirectory),
       outputFileFormat = outputFileFormat.get,
-      outputCompressionFormat = outputCompressionFormat
+      outputCompressionFormat = outputCompressionFormat,
+      deleteInputFiles = bootParams.deleteInputFiles
     )
   }
 
@@ -105,6 +107,10 @@ trait CompactionConfigurationTrait {
     outputFileFormat:            FileFormat
   ): CompressionFormat = {
     userOutputCompressionFormat
+      .map { outputCompressionFormat ⇒
+        logger.info("Will use user provided output compression format : {}", outputCompressionFormat)
+        outputCompressionFormat
+      }
       .orElse {
         logger.info("User did not provide any output compression format. Will fallback on the input files one.")
         inputCompressionFormat

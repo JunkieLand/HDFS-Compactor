@@ -166,7 +166,8 @@ class CompactionConfiguration$Test extends FunSuite with Matchers with BeforeAnd
       inputFileFormat = FileFormat.Parquet,
       outputDirectory = "",
       outputFileFormat = FileFormat.Parquet,
-      outputCompressionFormat = CompressionFormat.LZO
+      outputCompressionFormat = CompressionFormat.LZO,
+      deleteInputFiles = true
     )
 
     // -- When
@@ -185,7 +186,8 @@ class CompactionConfiguration$Test extends FunSuite with Matchers with BeforeAnd
       inputFileFormat = FileFormat.Parquet,
       outputDirectory = "",
       outputFileFormat = FileFormat.Parquet,
-      outputCompressionFormat = CompressionFormat.Snappy
+      outputCompressionFormat = CompressionFormat.Snappy,
+      deleteInputFiles = true
     )
 
     // -- When

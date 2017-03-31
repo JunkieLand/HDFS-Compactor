@@ -14,7 +14,7 @@ object Main {
   def main(args: Array[String]) {
 
     BootParams.parse(args).foreach { bootParams ⇒
-      logger.info("HDFS Compactor started...")
+      logger.info("HDFS Compactor started with paremeters :\n{}", bootParams)
 
       implicit val spark = SparkSession
         .builder()
@@ -33,6 +33,7 @@ object Main {
 
       CompactorRunner.run(compactionConfiguration)
 
+      logger.info("HDFS Compactor is done !")
     }
 
   }

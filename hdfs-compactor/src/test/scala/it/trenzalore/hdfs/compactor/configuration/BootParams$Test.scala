@@ -7,7 +7,7 @@ class BootParams$Test extends FunSuite with Matchers {
 
   test("All parameters can be provided") {
     // -- Given
-    val params = "--input-directory dummyDir --input-file-format parquet --output-directory dummyOutDir --output-file-format Parquet --output-compression-format LZO".split(" ")
+    val params = "--input-directory dummyDir --input-file-format parquet --output-directory dummyOutDir --output-file-format Parquet --output-compression-format LZO --delete-input-files true".split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params).get
@@ -18,6 +18,7 @@ class BootParams$Test extends FunSuite with Matchers {
     bootParams.outputDirectory.get should be("dummyOutDir")
     bootParams.outputFileFormat.get should be(FileFormat.Parquet)
     bootParams.outputCompressionFormat.get should be(CompressionFormat.LZO)
+    bootParams.deleteInputFiles should be(true)
   }
 
   test("input-file-format parameter should exist maximum once") {
@@ -114,6 +115,17 @@ class BootParams$Test extends FunSuite with Matchers {
   test("output-compression-format parameter should have only an authorized value") {
     // -- Given
     val params = "--input-directory dummyInDir --output-compression-format dummyCF".split(" ")
+
+    // -- When
+    val bootParams = BootParams.parse(params)
+
+    // -- Then
+    bootParams should be(None)
+  }
+
+  test("delete-input-files parameter should exist maximum once") {
+    // -- Given
+    val params = "--input-directory dummyInDir --delete-input-files true --delete-input-files true".split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)

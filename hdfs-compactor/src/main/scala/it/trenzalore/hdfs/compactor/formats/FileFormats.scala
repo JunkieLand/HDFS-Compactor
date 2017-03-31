@@ -19,10 +19,10 @@ object FileFormat extends CustomEnumeration[FileFormat] {
   case object Avro extends FileFormat {
     val acceptedCompressionFormat = Vector(
       CompressionFormat.Snappy,
-      CompressionFormat.GZip,
+      CompressionFormat.Deflate,
       CompressionFormat.Uncompressed
     )
-    val defaultCompressionFormat = CompressionFormat.Snappy
+    val defaultCompressionFormat = CompressionFormat.Uncompressed
   }
   case object Text extends FileFormat {
     val acceptedCompressionFormat = Vector(
