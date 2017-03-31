@@ -17,11 +17,20 @@ object CompactorRunner {
   def run(params: BootParams)(implicit spark: SparkSession, fs: FileSystem) = {
     val inputFiles = getInputFiles(params.inputDirectory)
 
+    val blockSize = spark.sparkContext.hadoopConfiguration.getLong("dfs.blocksize", 128.megabytes.inBytes)
+
+    val outputSizeOpt = estimateOutputSize(params)
+
+    val nbOfFiles = outputSizeOpt
+      .map(outputSize ⇒ Math.ceil(outputSize.toDouble / blockSize.toDouble))
+      .map(_.toInt)
+      .getOrElse(1)
+
     val dataFrame = params
       .inputFileFormat
       .getReader
       .getDataFrame(inputFiles)
-      .coalesce(1)
+      .coalesce(nbOfFiles)
 
     params
       .outputFileFormat
