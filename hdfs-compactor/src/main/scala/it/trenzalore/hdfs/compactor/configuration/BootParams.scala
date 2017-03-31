@@ -4,12 +4,13 @@ import it.trenzalore.hdfs.compactor.formats.{ CompressionFormat, FileFormat }
 import scala.util.Try
 
 case class BootParams(
-  inputDirectory:          String                    = "",
-  inputFileFormat:         Option[FileFormat]        = None,
-  outputDirectory:         Option[String]            = None,
-  outputFileFormat:        Option[FileFormat]        = None,
-  outputCompressionFormat: Option[CompressionFormat] = None,
-  deleteInputFiles:        Boolean                   = false
+  inputDirectory:          String            = "",
+  inputFileFormat:         FileFormat        = FileFormat.Parquet,
+  inputCompressionFormat:  CompressionFormat = CompressionFormat.Snappy,
+  outputDirectory:         String            = "",
+  outputFileFormat:        FileFormat        = FileFormat.Parquet,
+  outputCompressionFormat: CompressionFormat = CompressionFormat.Snappy,
+  deleteInputFiles:        Boolean           = false
 )
 
 object BootParams {
@@ -30,6 +31,7 @@ object BootParams {
       }
 
     opt[String]('j', "input-file-format")
+      .minOccurs(1)
       .maxOccurs(1)
       .text("The file format of the input files. If not provided, will try to guess according to file names.")
       .validate { inputFileFormat ⇒
@@ -38,18 +40,33 @@ object BootParams {
       }
       .action {
         case (inputFileFormat, bootParams) ⇒
-          bootParams.copy(inputFileFormat = FileFormat.fromString(inputFileFormat))
+          bootParams.copy(inputFileFormat = FileFormat.fromString(inputFileFormat).get)
+      }
+
+    opt[String]('c', "input-compression-format")
+      .minOccurs(1)
+      .maxOccurs(1)
+      .text(s"The input compression format. Possible values : ${CompressionFormat._ALL.toString}. Defaults to the same as input.")
+      .validate { inputCompressionFormat ⇒
+        if (CompressionFormat.fromString(inputCompressionFormat).isDefined) success
+        else failure(s"input-compression-format should be in : ${CompressionFormat._ALL.toString}")
+      }
+      .action {
+        case (inputCompressionFormat, bootParams) ⇒
+          bootParams.copy(inputCompressionFormat = CompressionFormat.fromString(inputCompressionFormat).get)
       }
 
     opt[String]('o', "output-directory")
+      .minOccurs(1)
       .maxOccurs(1)
       .text("The output directory for the concatenated files. Defaults depends on the file format.")
       .action {
         case (outputDirectory, bootParams) ⇒
-          bootParams.copy(outputDirectory = Some(outputDirectory))
+          bootParams.copy(outputDirectory = outputDirectory)
       }
 
     opt[String]('f', "output-file-format")
+      .minOccurs(1)
       .maxOccurs(1)
       .text(s"The output file format. Possible values : ${FileFormat._ALL.toString}. Defaults to the same as input.")
       .validate { outputFileFormat ⇒
@@ -58,10 +75,11 @@ object BootParams {
       }
       .action {
         case (outputFileFormat, bootParams) ⇒
-          bootParams.copy(outputFileFormat = FileFormat.fromString(outputFileFormat))
+          bootParams.copy(outputFileFormat = FileFormat.fromString(outputFileFormat).get)
       }
 
     opt[String]('c', "output-compression-format")
+      .minOccurs(1)
       .maxOccurs(1)
       .text(s"The output compression format. Possible values : ${CompressionFormat._ALL.toString}. Defaults to the same as input.")
       .validate { outputCompressionFormat ⇒
@@ -70,7 +88,7 @@ object BootParams {
       }
       .action {
         case (outputCompressionFormat, bootParams) ⇒
-          bootParams.copy(outputCompressionFormat = CompressionFormat.fromString(outputCompressionFormat))
+          bootParams.copy(outputCompressionFormat = CompressionFormat.fromString(outputCompressionFormat).get)
       }
 
     opt[String]('d', "delete-input-files")
@@ -84,6 +102,15 @@ object BootParams {
         case (deleteInputFiles, bootParams) ⇒
           bootParams.copy(deleteInputFiles = deleteInputFiles.toBoolean)
       }
+
+    checkConfig { bootParams ⇒
+      val outputCompressionFormat = bootParams.outputCompressionFormat
+      val outputFileFormat = bootParams.outputFileFormat
+      val isConfValid = outputFileFormat.acceptedCompressionFormat.contains(outputCompressionFormat)
+
+      if (isConfValid) success
+      else failure(s"Compression format $outputCompressionFormat is incompatible with file format $outputFileFormat. Select one in : ${outputFileFormat.acceptedCompressionFormat}")
+    }
   }
 
 }

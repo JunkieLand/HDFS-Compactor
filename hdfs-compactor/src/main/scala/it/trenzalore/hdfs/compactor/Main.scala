@@ -2,7 +2,7 @@ package it.trenzalore.hdfs.compactor
 
 import org.apache.spark.sql.{ SaveMode, SparkSession }
 import com.twitter.conversions.storage._
-import it.trenzalore.hdfs.compactor.configuration.{ BootParams, CompactionConfiguration }
+import it.trenzalore.hdfs.compactor.configuration.{ BootParams }
 import it.trenzalore.hdfs.compactor.run.CompactorRunner
 import org.apache.hadoop.fs.FileSystem
 import org.slf4j.LoggerFactory
@@ -27,11 +27,7 @@ object Main {
 
       implicit val fs = FileSystem.get(spark.sparkContext.hadoopConfiguration)
 
-      val compactionConfiguration = CompactionConfiguration.compute(bootParams)
-
-      logger.info("Will use compaction configuration : {}", compactionConfiguration)
-
-      CompactorRunner.run(compactionConfiguration)
+      CompactorRunner.run(bootParams)
 
       logger.info("HDFS Compactor is done !")
     }

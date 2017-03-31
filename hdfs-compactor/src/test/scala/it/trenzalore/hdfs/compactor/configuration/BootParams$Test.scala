@@ -5,25 +5,46 @@ import it.trenzalore.hdfs.compactor.formats.{ CompressionFormat, FileFormat }
 
 class BootParams$Test extends FunSuite with Matchers {
 
+  val fullCommandLine = "--input-directory dummyDir --input-file-format parquet --input-compression-format snappy --output-directory dummyOutDir --output-file-format Parquet --output-compression-format GZip --delete-input-files true"
+
+  def commandLineWithout(param: String): String = {
+    val regex = s"--${param} \\w.+"
+    fullCommandLine.replaceAll(regex, "")
+  }
+
+  def commandLineWithTwice(param: String, value: String): String = fullCommandLine + s"--${param} $value"
+
   test("All parameters can be provided") {
     // -- Given
-    val params = "--input-directory dummyDir --input-file-format parquet --output-directory dummyOutDir --output-file-format Parquet --output-compression-format LZO --delete-input-files true".split(" ")
+    val params = fullCommandLine.split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params).get
 
     // -- Then
     bootParams.inputDirectory should be("dummyDir")
-    bootParams.inputFileFormat.get should be(FileFormat.Parquet)
-    bootParams.outputDirectory.get should be("dummyOutDir")
-    bootParams.outputFileFormat.get should be(FileFormat.Parquet)
-    bootParams.outputCompressionFormat.get should be(CompressionFormat.LZO)
+    bootParams.inputFileFormat should be(FileFormat.Parquet)
+    bootParams.inputCompressionFormat should be(CompressionFormat.Snappy)
+    bootParams.outputDirectory should be("dummyOutDir")
+    bootParams.outputFileFormat should be(FileFormat.Parquet)
+    bootParams.outputCompressionFormat should be(CompressionFormat.GZip)
     bootParams.deleteInputFiles should be(true)
+  }
+
+  test("input-file-format parameter should at least once") {
+    // -- Given
+    val params = commandLineWithout("input-file-format").split(" ")
+
+    // -- When
+    val bootParams = BootParams.parse(params)
+
+    // -- Then
+    bootParams should be(None)
   }
 
   test("input-file-format parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyInDir --input-file-format parquet --input-file-format avro".split(" ")
+    val params = commandLineWithTwice("input-file-format", "parquet").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -32,23 +53,9 @@ class BootParams$Test extends FunSuite with Matchers {
     bootParams should be(None)
   }
 
-  test("output-directory, output-file-format and output-compression-format can be optionnal") {
+  test("input-compression-format parameter should at least once") {
     // -- Given
-    val params = "--input-directory dummyDir".split(" ")
-
-    // -- When
-    val bootParams = BootParams.parse(params).get
-
-    // -- Then
-    bootParams.inputDirectory should be("dummyDir")
-    bootParams.outputDirectory should be(None)
-    bootParams.outputFileFormat should be(None)
-    bootParams.outputCompressionFormat should be(None)
-  }
-
-  test("input-directory parameter should exist at least once") {
-    // -- Given
-    val params = "".split(" ")
+    val params = commandLineWithout("input-compression-format").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -57,9 +64,20 @@ class BootParams$Test extends FunSuite with Matchers {
     bootParams should be(None)
   }
 
-  test("input-directory parameter should exist maximum once") {
+  test("input-compression-format parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyDir1 --input-directory dummyDir2".split(" ")
+    val params = commandLineWithTwice("input-compression-format", "parquet").split(" ")
+
+    // -- When
+    val bootParams = BootParams.parse(params)
+
+    // -- Then
+    bootParams should be(None)
+  }
+
+  test("output-directory parameter should at least once") {
+    // -- Given
+    val params = commandLineWithout("output-directory").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -70,7 +88,18 @@ class BootParams$Test extends FunSuite with Matchers {
 
   test("output-directory parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyInDir --output-directory dummyOutDir1 --output-directory dummyOutDir2".split(" ")
+    val params = commandLineWithTwice("output-directory", "parquet").split(" ")
+
+    // -- When
+    val bootParams = BootParams.parse(params)
+
+    // -- Then
+    bootParams should be(None)
+  }
+
+  test("output-file-format parameter should at least once") {
+    // -- Given
+    val params = commandLineWithout("output-file-format").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -81,7 +110,18 @@ class BootParams$Test extends FunSuite with Matchers {
 
   test("output-file-format parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyInDir --output-file-format parquet --output-file-format avro".split(" ")
+    val params = commandLineWithTwice("output-file-format", "parquet").split(" ")
+
+    // -- When
+    val bootParams = BootParams.parse(params)
+
+    // -- Then
+    bootParams should be(None)
+  }
+
+  test("output-compression-format parameter should at least once") {
+    // -- Given
+    val params = commandLineWithout("output-compression-format").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -92,7 +132,7 @@ class BootParams$Test extends FunSuite with Matchers {
 
   test("output-compression-format parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyInDir --output-compression-format lzo --output-compression-format gzip".split(" ")
+    val params = commandLineWithTwice("output-compression-format", "parquet").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
@@ -101,31 +141,26 @@ class BootParams$Test extends FunSuite with Matchers {
     bootParams should be(None)
   }
 
-  test("output-file-format parametFr should have only an authorized value") {
+  test("delete-input-files parameter should be optionnal") {
     // -- Given
-    val params = "--input-directory dummyInDir --output-file-format dummyFF".split(" ")
+    val params = commandLineWithout("delete-input-files").split(" ")
 
     // -- When
-    val bootParams = BootParams.parse(params)
+    val bootParams = BootParams.parse(params).get
 
     // -- Then
-    bootParams should be(None)
-  }
-
-  test("output-compression-format parameter should have only an authorized value") {
-    // -- Given
-    val params = "--input-directory dummyInDir --output-compression-format dummyCF".split(" ")
-
-    // -- When
-    val bootParams = BootParams.parse(params)
-
-    // -- Then
-    bootParams should be(None)
+    bootParams.inputDirectory should be("dummyDir")
+    bootParams.inputFileFormat should be(FileFormat.Parquet)
+    bootParams.inputCompressionFormat should be(CompressionFormat.Snappy)
+    bootParams.outputDirectory should be("dummyOutDir")
+    bootParams.outputFileFormat should be(FileFormat.Parquet)
+    bootParams.outputCompressionFormat should be(CompressionFormat.GZip)
+    bootParams.deleteInputFiles should be(false)
   }
 
   test("delete-input-files parameter should exist maximum once") {
     // -- Given
-    val params = "--input-directory dummyInDir --delete-input-files true --delete-input-files true".split(" ")
+    val params = commandLineWithTwice("delete-input-files", "parquet").split(" ")
 
     // -- When
     val bootParams = BootParams.parse(params)
